@@ -1,19 +1,21 @@
 // Small shared building blocks used across screens.
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, Platform, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
+import { useGuideData } from '@/context/GuideDataContext';
 
 export const F = { r: 'Inter_400Regular', m: 'Inter_500Medium', s: 'Inter_600SemiBold', b: 'Inter_700Bold' };
 
 // Scrollable page with safe-area top padding and room for the tab bar.
-export function Screen({ children, showCity = true }: { children: React.ReactNode; showCity?: boolean }) {
+export function Screen({ children, showCity = true, needsGuide = false }: { children: React.ReactNode; showCity?: boolean; needsGuide?: boolean }) {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const { city, hasPass } = useApp();
+  const guide = useGuideData();
   const top = Platform.OS === 'web' ? 67 : insets.top + 12;
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
@@ -24,7 +26,17 @@ export function Screen({ children, showCity = true }: { children: React.ReactNod
             <Text style={{ color: c.accentForeground, fontFamily: F.s, fontSize: 12 }}>{city}</Text>
           </View>
         ) : null}
-        {children}
+        {needsGuide && guide.failed ? (
+          <View style={{ gap: 14 }}>
+            <Body>The guide could not be loaded. Please try again.</Body>
+            <Btn label="Try again" onPress={guide.retry} />
+          </View>
+        ) : needsGuide && guide.loading ? (
+          <View style={{ gap: 14 }}>
+            <ActivityIndicator color={c.primary} />
+            <Body>Loading guide…</Body>
+          </View>
+        ) : children}
       </KeyboardAwareScrollViewCompat>
     </View>
   );

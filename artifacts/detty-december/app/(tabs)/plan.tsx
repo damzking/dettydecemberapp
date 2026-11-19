@@ -5,7 +5,8 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { QuizAnswers, useApp } from '@/context/AppContext';
-import { CATEGORIES, CITIES, Category, City, IDEAS } from '@/data/ideas';
+import { CATEGORIES, CITIES, Category, City } from '@/data/ideas';
+import { useGuideData } from '@/context/GuideDataContext';
 import { Body, Btn, Card, Chip, F, H1, H2, Row, Screen } from '@/components/ui';
 
 const LENGTHS = ['A weekend', 'One week', 'Two weeks or more'];
@@ -20,6 +21,7 @@ const PERSONAS: Record<Category, string> = {
 export default function Plan() {
   const c = useColors();
   const { quiz, setQuiz, saved, toggleSaved, showToast, city: currentCity } = useApp();
+  const { ideas } = useGuideData();
   const [editing, setEditing] = useState(!quiz);
   const [city, setCity] = useState<City>(quiz?.city ?? currentCity);
   const [length, setLength] = useState(quiz?.length ?? LENGTHS[0]);
@@ -36,19 +38,19 @@ export default function Plan() {
     showToast('Your plan is ready.');
   };
 
-  const picks = IDEAS.filter((i) => saved.includes(i.id));
+  const picks = ideas.filter((i) => saved.includes(i.id));
 
   // Suggested days: ideas in the chosen city matching vibes, minus saved ones, two per day.
-  const days: { day: number; items: typeof IDEAS }[] = [];
+  const days: { day: number; items: typeof ideas }[] = [];
   if (quiz) {
-    const pool = IDEAS.filter((i) => i.city === quiz.city && !saved.includes(i.id))
+    const pool = ideas.filter((i) => i.city === quiz.city && !saved.includes(i.id))
       .sort((a, b) => Number(quiz.vibes.includes(b.category)) - Number(quiz.vibes.includes(a.category)));
     const n = DAYS[quiz.length] ?? 2;
     for (let d = 0; d < n && d * 2 < pool.length; d++) days.push({ day: d + 1, items: pool.slice(d * 2, d * 2 + 2) });
   }
 
   return (
-    <Screen>
+    <Screen needsGuide>
       <H1>Your plan</H1>
       {editing || !quiz ? (
         <Card>

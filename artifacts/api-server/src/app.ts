@@ -31,4 +31,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
+app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  req.log.error({ err }, "Request failed");
+  const status = typeof err === "object" && err !== null && "status" in err && err.status === 400 ? 400 : 500;
+  res.status(status).json({ error: status === 400 ? "Invalid request body." : "The guide could not be loaded. Please try again." });
+});
+
 export default app;

@@ -12,6 +12,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AppProvider } from '@/context/AppContext';
 import { Toast } from '@/components/ui';
 import colors from '@/constants/colors';
+import { setBaseUrl } from '@workspace/api-client-react';
+import { GuideDataProvider } from '@/context/GuideDataContext';
+
+// Override with a full API origin when hosting the backend separately.
+const apiOrigin = process.env.EXPO_PUBLIC_API_URL
+  ?? (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : null);
+setBaseUrl(apiOrigin);
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -44,12 +51,14 @@ export default function RootLayout() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AppProvider>
+            <GuideDataProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
                 <StatusBar style="light" />
                 <RootLayoutNav />
               </KeyboardProvider>
             </GestureHandlerRootView>
+            </GuideDataProvider>
           </AppProvider>
         </QueryClientProvider>
       </ErrorBoundary>

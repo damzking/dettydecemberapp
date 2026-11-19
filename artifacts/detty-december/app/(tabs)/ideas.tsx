@@ -4,13 +4,23 @@ import { Pressable, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
-import { CATEGORIES, CITIES, IDEAS, Idea } from '@/data/ideas';
+import { CATEGORIES, CITIES, Idea } from '@/data/ideas';
+import { useGuideData } from '@/context/GuideDataContext';
+import { useCreateReport } from '@workspace/api-client-react';
 import { Body, Btn, Card, Chip, F, H1, Row, Screen } from '@/components/ui';
 
 function IdeaCard({ idea }: { idea: Idea }) {
   const c = useColors();
   const { saved, toggleSaved, showToast } = useApp();
   const added = saved.includes(idea.id);
+  const report = useCreateReport();
+  const reportProblem = () => {
+    if (report.isPending) return;
+    report.mutate({ data: { ideaId: idea.id, note: 'Reported from the Ideas screen.' } }, {
+      onSuccess: () => showToast('Thank you. Your report has been noted (demo).'),
+      onError: () => showToast('Your report could not be saved. Please try again.'),
+    });
+  };
   return (
     <Card>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -31,7 +41,7 @@ function IdeaCard({ idea }: { idea: Idea }) {
         </View>
       ) : null}
       <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-        <Pressable onPress={() => showToast('Thank you. Your report has been noted (demo).')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 12 }}>
+        <Pressable testID={`report-${idea.id}`} disabled={report.isPending} onPress={reportProblem} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 12 }}>
           <Feather name="flag" size={14} color={c.mutedForeground} />
           <Text style={{ color: c.mutedForeground, fontFamily: F.m, fontSize: 13 }}>Report a problem</Text>
         </Pressable>
@@ -46,9 +56,10 @@ function IdeaCard({ idea }: { idea: Idea }) {
 export default function Ideas() {
   const c = useColors();
   const { city, setCity, ideaCategory, setIdeaCategory, saved } = useApp();
-  const list = IDEAS.filter((i) => i.city === city && (ideaCategory === 'All' || i.category === ideaCategory));
+  const { ideas } = useGuideData();
+  const list = ideas.filter((i) => i.city === city && (ideaCategory === 'All' || i.category === ideaCategory));
   return (
-    <Screen>
+    <Screen needsGuide>
       <H1>Ideas</H1>
       <View style={{ flexDirection: 'row', backgroundColor: c.secondary, borderRadius: 999, padding: 4 }}>
         {CITIES.map((ct) => (

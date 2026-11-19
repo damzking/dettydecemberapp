@@ -11,6 +11,74 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /guide/ideas:
+    get:
+      operationId: listIdeas
+      summary: Read guide ideas
+      responses:
+        "200":
+          description: Ideas from the database
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Idea"
+  /guide/tips:
+    get:
+      operationId: listTips
+      summary: Read survival tips
+      responses:
+        "200":
+          description: Tips from the database
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tip"
+  /guide/prices:
+    get:
+      operationId: listPriceItems
+      summary: Read the price guide
+      responses:
+        "200":
+          description: Price items from the database
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PriceItem"
+  /guide/reports:
+    post:
+      operationId: createReport
+      summary: Save a problem report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewReport"
+      responses:
+        "201":
+          description: Saved report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "400":
+          description: Invalid report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "404":
+          description: Idea not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
   /healthz:
     get:
       operationId: healthCheck
@@ -26,6 +94,57 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
+    Idea:
+      type: object
+      required: [id, city, category, title, area, priceLevel, blurb, verified, status, source]
+      properties:
+        id: { type: string }
+        city: { type: string, enum: [Lagos, Abuja] }
+        category: { type: string, enum: [Coffee, Parties, Sports, Events] }
+        title: { type: string }
+        area: { type: string }
+        priceLevel: { type: string }
+        blurb: { type: string }
+        seller: { type: string }
+        verified: { type: string, description: Display text from date_checked, including bracketed sample dates }
+        status: { type: string }
+        source: { type: string }
+    Tip:
+      type: object
+      required: [id, category, title, body]
+      properties:
+        id: { type: string }
+        category: { type: string, enum: [Scams, Money, Transport, Safety, Health] }
+        title: { type: string }
+        body: { type: string }
+    PriceItem:
+      type: object
+      required: [id, item, price, lastChecked]
+      properties:
+        id: { type: string }
+        item: { type: string }
+        price: { type: string }
+        lastChecked: { type: string }
+    NewReport:
+      type: object
+      additionalProperties: false
+      required: [ideaId, note]
+      properties:
+        ideaId: { type: string, minLength: 1, maxLength: 200 }
+        note: { type: string, minLength: 1, maxLength: 2000 }
+    Report:
+      type: object
+      required: [id, ideaId, note, createdAt]
+      properties:
+        id: { type: string }
+        ideaId: { type: string }
+        note: { type: string }
+        createdAt: { type: string }
+    ApiError:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
     HealthStatus:
       type: object
       properties:

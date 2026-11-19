@@ -6,11 +6,13 @@ import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { PASSES } from '@/data/passes';
+import { useGuideData } from '@/context/GuideDataContext';
 import { Body, Btn, F, H1, Row, Screen } from '@/components/ui';
 
 export default function Home() {
   const c = useColors();
   const { pass, showToast, setTipCategory, setIdeaCategory } = useApp();
+  const { tips } = useGuideData();
   const passInfo = PASSES.find((p) => p.id === pass?.id);
   const hoursLeft = pass ? Math.max(0, Math.round((pass.expiresAt - Date.now()) / 3600000)) : 0;
 
@@ -27,7 +29,7 @@ export default function Home() {
   ];
 
   return (
-    <Screen>
+    <Screen needsGuide>
       <H1>December, sorted.</H1>
       <Body muted>Your pocket guide to Lagos and Abuja: what to do, what to pay, who to ask.</Body>
       <View style={{ gap: 10 }}>
@@ -54,7 +56,7 @@ export default function Home() {
           <Feather name="alert-triangle" size={16} color={c.destructive} />
           <Text style={{ color: c.destructive, fontFamily: F.b, fontSize: 12, letterSpacing: 1.5 }}>SCAM WATCH</Text>
         </View>
-        <Text style={{ color: c.foreground, fontFamily: F.b, fontSize: 17 }}>[This week's alert goes here]</Text>
+        <Text style={{ color: c.foreground, fontFamily: F.b, fontSize: 17 }}>{tips.find((tip) => tip.category === 'Scams')?.title ?? ''}</Text>
         <Body muted style={{ fontSize: 12 }}>Tap to see all scam tips</Body>
       </Pressable>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
