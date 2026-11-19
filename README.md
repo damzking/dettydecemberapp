@@ -1,6 +1,59 @@
-# Detty December Guide — stage 3
+# Detty December Guide — stage 4 test payments
 
-The original guide screens read PostgreSQL data through Express. Stage three adds email/password accounts, cookie sessions and server-enforced timed passes. No email service or real payments have been added. Quiz answers and saved ideas remain on-device, scoped to each account; passes now come only from the server.
+The original guide screens read PostgreSQL data through Express. Stages two and three add database-backed guide content, email/password accounts, cookie sessions and server-enforced timed passes. Stage four adds a payment flow with a development-only mock provider and a separate Whop sandbox adapter. Checkout is disabled by default. **No Whop live products, plans or payments were created by this project.** Quiz answers and saved ideas remain on-device, scoped to each account.
+
+## Stage four: test payments
+
+The server chooses prices (day $3, week $6, month $10); the app sends only the plan. The backend records each checkout and one shared confirmation function verifies ownership, amount and currency before creating a pass. Repeated confirmation/webhook delivery cannot create duplicate passes. Passes last exactly 24 hours, 7 days or 30 days and queue after current passes. Payment references and statuses are stored; card data is not.
+
+Checkout is explicitly disabled in the shared project configuration (`PAYMENT_PROVIDER=disabled`). It can run only in `NODE_ENV=development`, never production. Do **not** use the connected Whop production integration for testing. Its key cannot authenticate to Whop's sandbox.
+
+### Mock checkout (local development only)
+
+For local mock testing, configure the API **development** environment only:
+
+| Setting | Value |
+|---|---|
+| `PAYMENT_PROVIDER` | `mock` |
+| `MOCK_WEBHOOK_SECRET` | A private random string; store it as a development secret, never in source control |
+| `PAYMENT_CURRENCY` | `USD` by default |
+
+Restart the API after changing settings. The mock provider only works when `NODE_ENV=development`. Never copy these settings into production. To return to the safe default, unset `PAYMENT_PROVIDER` (or set `disabled`) and restart. The UI mock checkout offers success, decline and abandoned/closed checkout outcomes; the automated test also exercises invalid and repeated webhook deliveries.
+
+### Whop sandbox (not configured yet)
+
+The Whop adapter is off unless `PAYMENT_PROVIDER=whop` and `WHOP_ENVIRONMENT=sandbox`. It reads only sandbox settings; it never uses the connected Whop production credential. Required secrets/settings:
+
+| Setting | Value |
+|---|---|
+| `PAYMENT_PROVIDER` | `whop` (development environment only) |
+| `WHOP_ENVIRONMENT` | `sandbox` |
+| `WHOP_SANDBOX_API_KEY` | API key created in the Whop sandbox developer dashboard; save as a secret |
+| `WHOP_SANDBOX_COMPANY_ID` | Sandbox company ID (`biz_…`) |
+| `WHOP_SANDBOX_DAY_PLAN_ID` | Existing one-time sandbox plan priced at $3 USD |
+| `WHOP_SANDBOX_WEEK_PLAN_ID` | Existing one-time sandbox plan priced at $6 USD |
+| `WHOP_SANDBOX_MONTH_PLAN_ID` | Existing one-time sandbox plan priced at $10 USD |
+| `WHOP_SANDBOX_WEBHOOK_SECRET` | Signing secret for a sandbox webhook subscribed to `payment.succeeded`; save as a secret |
+| `PAYMENT_CURRENCY` | Currency shared by all three configured plans; defaults to `USD` |
+| `APP_ORIGIN` | HTTPS app origin used as the checkout return URL |
+
+Create a separate Whop sandbox account and API key at [sandbox.whop.com/dashboard/developer](https://sandbox.whop.com/dashboard/developer). The official [Whop sandbox guide](https://docs.whop.com/developer/guides/sandbox) explains sandbox setup and lists test cards: `4242 4242 4242 4242` succeeds; `4000 0000 0000 0002` declines; `5385 3083 6013 5181` triggers 3-D Secure (enter `Checkout1!`). Use any future expiry, any 3-digit CVC, and any billing address. Those are Whop sandbox cards, not credentials.
+
+The webhook paths are `/api/payments/webhooks/mock` (mock only) and `/api/payments/webhooks/whop` (Whop sandbox only). The Whop endpoint verifies Whop's Standard Webhooks signature against the raw request body and acknowledges before confirmation. Configure the exact public URL by adding the relevant path to the app's HTTPS origin.
+
+### Payment commands and checks
+
+```sh
+pnpm pass:revoke person@example.com # expire active passes and sign out; does not issue a refund
+pnpm payments:list                  # show up to 50 most recent records
+pnpm --filter @workspace/api-server test:payments
+```
+
+The payment test creates only a temporary mock user and synthetic payments, then removes the test rows. It does not contact Whop. It covers success, decline, abandoned/closed tab, correct and incorrect webhook signatures, repeated webhook/confirmation, mismatched reference/amount/currency, queued durations, and production/disabled-provider refusal.
+
+### Stage four status
+
+The development-only mock payment flow and disabled Whop sandbox adapter are implemented. Whop sandbox credentials, three sandbox plans, webhook secret/endpoint registration, and a real sandbox checkout have **not** been configured or verified. The connected Whop production credential was used only for a read-only API availability check; no products, plans, or payments were created. Live checkout, refunds through the provider, subscription billing, receipts, and chargebacks are not implemented. The revoke command only revokes access; it does not refund a charge.
 
 ## Password accounts and passes
 

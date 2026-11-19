@@ -10,7 +10,7 @@ export async function startPayment(userId: string, plan: string, origin: string)
   const provider = providerName();
   const reference = randomUUID();
   const payment: Payment = { reference, user_id: userId, plan: plan as keyof typeof prices,
-    amount: prices[plan as keyof typeof prices], currency: "USD", provider, provider_id: null, mock_status: "pending" };
+  amount: prices[plan as keyof typeof prices], currency: (process.env.PAYMENT_CURRENCY ?? "USD").toUpperCase(), provider, provider_id: null, mock_status: "pending" };
   await pool.query(`INSERT INTO payments(id,user_id,plan,amount,currency,reference,provider)
     VALUES($1,$2,$3,$4,$5,$1,$6)`, [reference,userId,plan,payment.amount,payment.currency,provider]);
   try {
@@ -30,6 +30,9 @@ export async function confirmPayment(reference: string, userId?: string) {
   const { rows } = await pool.query("SELECT * FROM payments WHERE reference=$1", [reference]);
   const payment = rows[0] as Payment & { status: string; pass_id: string };
   if (!payment || (userId && payment.user_id !== userId)) throw new Error("Payment not found.");
+  if (payment.amount !== prices[payment.plan] || payment.currency !== (process.env.PAYMENT_CURRENCY ?? "USD").toUpperCase()) {
+    throw new Error("Stored payment does not match the server price.");
+  }
   if (payment.provider !== providerName()) throw new Error("Payment provider is disabled.");
   const verified = await (await getProvider()).confirmPayment(reference, payment);
   if (verified.reference !== reference || verified.amount !== payment.amount || verified.currency !== payment.currency) {
