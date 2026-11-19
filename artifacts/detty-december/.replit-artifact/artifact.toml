@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/"
+title = "Detty December Guide"
+description = "Stage 1 mobile guide for diaspora visitors to Lagos and Abuja, with a simulated pass, trip planner, survival tips, placeholder ideas, and sample local chat. Frontend only with no real payments or login."
+version = "1.0.0"
+id = "artifacts/detty-december"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 24760
+
+[services.development]
+run = "pnpm --filter @workspace/detty-december run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/detty-december", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/detty-december", "run", "serve" ]
+
+[services.env]
+PORT = "24760"
+BASE_PATH = "/"
