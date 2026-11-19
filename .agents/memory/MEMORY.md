@@ -1,0 +1,1 @@
+- [Whop test environment](whop-test-environment.md) — verify sandbox authentication before enabling checkout; a connected integration is not proof of test-mode access.
