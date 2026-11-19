@@ -7,6 +7,7 @@ import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { PASSES, Pass } from '@/data/passes';
 import { Body, Btn, Card, F, H1, Screen } from '@/components/ui';
+import { useAuth } from '@/context/AuthContext';
 
 const INCLUDED = ['Plan quiz and day-by-day suggestions', 'Lagos and Abuja ideas list', 'Survive tips and price guide', 'Ask a local guidance line'];
 
@@ -14,15 +15,25 @@ export default function Pricing() {
   const c = useColors();
   const { ready, hasPass, buyPass, showToast } = useApp();
   const [choice, setChoice] = useState<Pass['id']>('week');
+  const { user } = useAuth();
+  const [paying, setPaying] = useState(false);
   if (!ready) return null;
+  if (!user) return <Redirect href="/signin" />;
   if (hasPass) return <Redirect href="/" />;
   const pass = PASSES.find((p) => p.id === choice)!;
 
-  const pay = () => {
-    // Simulated payment: no money moves.
-    buyPass(choice);
-    showToast(`Demo payment accepted. ${pass.name} unlocked.`);
-    router.replace('/');
+  const pay = async () => {
+    if (paying) return;
+    setPaying(true);
+    try {
+      await buyPass(choice);
+      showToast(`Demo payment accepted. ${pass.name} unlocked.`);
+      router.replace('/');
+    } catch (error) {
+      const message = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { error?: string })?.error : undefined;
+      showToast(message ?? 'Could not grant a pass. Please try again.');
+    } finally { setPaying(false); }
   };
 
   return (
@@ -57,7 +68,7 @@ export default function Pricing() {
           </View>
         ))}
       </Card>
-      <Btn testID="pay" label={`Pay $${pass.price} and unlock`} onPress={pay} />
+      <Btn testID="pay" label={paying ? 'Please wait…' : `Pay $${pass.price} and unlock`} onPress={() => { void pay(); }} />
       <Body muted style={{ fontSize: 12, textAlign: 'center' }}>One-time payment for the days you choose. No auto-renewal. [Refund policy goes here]</Body>
       <Body muted style={{ fontSize: 11, textAlign: 'center' }}>Demo only: no real payment is taken.</Body>
     </Screen>

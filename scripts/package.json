@@ -6,9 +6,12 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
+    "pass:grant": "tsx ./src/pass-grant.ts",
+    "user:set-password": "tsx ./src/user-set-password.ts",
     "import:ideas": "tsx ./src/import-ideas.ts",
     "test": "tsx --test ./src/ideas-csv.test.ts",
     "test:db": "tsx --test ./src/stage2-db.test.ts",
+    "test:accounts": "tsx --test ./src/stage3-cli.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -16,6 +19,7 @@
     "tsx": "catalog:"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.8.0",
     "@workspace/db": "workspace:*",
     "csv-parse": "^7.0.3",
     "drizzle-orm": "catalog:"

@@ -26,11 +26,16 @@ import type {
 
 import type {
   ApiError,
+  BadRequestResponse,
+  Credentials,
   HealthStatus,
   Idea,
   NewReport,
+  PassChoice,
   PriceItem,
+  Registration,
   Report,
+  SessionInfo,
   Tip
 } from './api.schemas';
 
@@ -60,6 +65,421 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetSessionUrl = () => {
+
+
+
+
+  return `/api/auth/session`
+}
+
+/**
+ * @summary Read the current sign-in and pass
+ */
+export const getSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<SessionInfo> => {
+
+  return customFetch<SessionInfo>(getGetSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSessionQueryKey = () => {
+    return [
+    `/api/auth/session`
+    ] as const;
+    }
+
+
+export const getGetSessionQueryOptions = <TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSession>>> = ({ signal }) => getSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
+export type GetSessionQueryError = ErrorType<unknown>
+
+
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSession>>,
+          TError,
+          Awaited<ReturnType<typeof getSession>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSession>>,
+          TError,
+          Awaited<ReturnType<typeof getSession>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Read the current sign-in and pass
+ */
+
+export function useGetSession<TData = Awaited<ReturnType<typeof getSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSession>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSignUpUrl = () => {
+
+
+
+
+  return `/api/auth/signup`
+}
+
+export const signUp = async (registration: Registration, options?: Parameters<typeof customFetch>[1]): Promise<SessionInfo> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SessionInfo>(getSignUpUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(registration)
+  }
+);}
+
+
+
+
+
+export const getSignUpMutationKey = () => ['signUp'] as const;
+
+export const getSignUpMutationOptions = <TError = ErrorType<BadRequestResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,SignUpMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,SignUpMutationVariables, TContext> => {
+
+const mutationKey = getSignUpMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signUp>>, SignUpMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  signUp(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignUpMutationResult = NonNullable<Awaited<ReturnType<typeof signUp>>>
+    export type SignUpMutationBody = BodyType<Registration>
+    export type SignUpMutationError = ErrorType<BadRequestResponse>
+    export type SignUpMutationVariables = {data: BodyType<Registration>}
+
+    export const useSignUp = <TError = ErrorType<BadRequestResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signUp>>, TError,SignUpMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof signUp>>,
+        TError,
+        SignUpMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSignUpMutationOptions(options), queryClient);
+    }
+
+export const getSignInUrl = () => {
+
+
+
+
+  return `/api/auth/signin`
+}
+
+export const signIn = async (credentials: Credentials, options?: Parameters<typeof customFetch>[1]): Promise<SessionInfo> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SessionInfo>(getSignInUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(credentials)
+  }
+);}
+
+
+
+
+
+export const getSignInMutationKey = () => ['signIn'] as const;
+
+export const getSignInMutationOptions = <TError = ErrorType<BadRequestResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signIn>>, TError,SignInMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof signIn>>, TError,SignInMutationVariables, TContext> => {
+
+const mutationKey = getSignInMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signIn>>, SignInMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  signIn(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignInMutationResult = NonNullable<Awaited<ReturnType<typeof signIn>>>
+    export type SignInMutationBody = BodyType<Credentials>
+    export type SignInMutationError = ErrorType<BadRequestResponse>
+    export type SignInMutationVariables = {data: BodyType<Credentials>}
+
+    export const useSignIn = <TError = ErrorType<BadRequestResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signIn>>, TError,SignInMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof signIn>>,
+        TError,
+        SignInMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSignInMutationOptions(options), queryClient);
+    }
+
+export const getSignOutUrl = () => {
+
+
+
+
+  return `/api/auth/signout`
+}
+
+export const signOut = async ( options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getSignOutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSignOutMutationKey = () => ['signOut'] as const;
+
+export const getSignOutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signOut>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof signOut>>, TError,void, TContext> => {
+
+const mutationKey = getSignOutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof signOut>>, void> = () => {
+
+
+          return  signOut(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SignOutMutationResult = NonNullable<Awaited<ReturnType<typeof signOut>>>
+
+    export type SignOutMutationError = ErrorType<unknown>
+
+
+    export const useSignOut = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof signOut>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof signOut>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSignOutMutationOptions(options), queryClient);
+    }
+
+export const getGrantDemoPassUrl = () => {
+
+
+
+
+  return `/api/passes/demo`
+}
+
+export const grantDemoPass = async (passChoice: PassChoice, options?: Parameters<typeof customFetch>[1]): Promise<SessionInfo> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SessionInfo>(getGrantDemoPassUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(passChoice)
+  }
+);}
+
+
+
+
+
+export const getGrantDemoPassMutationKey = () => ['grantDemoPass'] as const;
+
+export const getGrantDemoPassMutationOptions = <TError = ErrorType<BadRequestResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantDemoPass>>, TError,GrantDemoPassMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof grantDemoPass>>, TError,GrantDemoPassMutationVariables, TContext> => {
+
+const mutationKey = getGrantDemoPassMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof grantDemoPass>>, GrantDemoPassMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  grantDemoPass(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GrantDemoPassMutationResult = NonNullable<Awaited<ReturnType<typeof grantDemoPass>>>
+    export type GrantDemoPassMutationBody = BodyType<PassChoice>
+    export type GrantDemoPassMutationError = ErrorType<BadRequestResponse>
+    export type GrantDemoPassMutationVariables = {data: BodyType<PassChoice>}
+
+    export const useGrantDemoPass = <TError = ErrorType<BadRequestResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof grantDemoPass>>, TError,GrantDemoPassMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof grantDemoPass>>,
+        TError,
+        GrantDemoPassMutationVariables,
+        TContext
+      > => {
+      return useMutation(getGrantDemoPassMutationOptions(options), queryClient);
+    }
 
 export const getListIdeasUrl = () => {
 
@@ -94,7 +514,7 @@ export const getListIdeasQueryKey = () => {
     }
 
 
-export const getListIdeasQueryOptions = <TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIdeas>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListIdeasQueryOptions = <TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<BadRequestResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIdeas>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -113,10 +533,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListIdeasQueryResult = NonNullable<Awaited<ReturnType<typeof listIdeas>>>
-export type ListIdeasQueryError = ErrorType<unknown>
+export type ListIdeasQueryError = ErrorType<BadRequestResponse>
 
 
-export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<unknown>>(
+export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<BadRequestResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIdeas>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listIdeas>>,
@@ -126,7 +546,7 @@ export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TErr
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<unknown>>(
+export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIdeas>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listIdeas>>,
@@ -136,7 +556,7 @@ export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TErr
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<unknown>>(
+export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIdeas>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -144,7 +564,7 @@ export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TErr
  * @summary Read guide ideas
  */
 
-export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<unknown>>(
+export function useListIdeas<TData = Awaited<ReturnType<typeof listIdeas>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listIdeas>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -195,7 +615,7 @@ export const getListTipsQueryKey = () => {
     }
 
 
-export const getListTipsQueryOptions = <TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListTipsQueryOptions = <TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<BadRequestResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -214,10 +634,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListTipsQueryResult = NonNullable<Awaited<ReturnType<typeof listTips>>>
-export type ListTipsQueryError = ErrorType<unknown>
+export type ListTipsQueryError = ErrorType<BadRequestResponse>
 
 
-export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<unknown>>(
+export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<BadRequestResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTips>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTips>>,
@@ -227,7 +647,7 @@ export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<unknown>>(
+export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTips>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTips>>,
@@ -237,7 +657,7 @@ export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<unknown>>(
+export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -245,7 +665,7 @@ export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError
  * @summary Read survival tips
  */
 
-export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<unknown>>(
+export function useListTips<TData = Awaited<ReturnType<typeof listTips>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTips>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -296,7 +716,7 @@ export const getListPriceItemsQueryKey = () => {
     }
 
 
-export const getListPriceItemsQueryOptions = <TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceItems>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListPriceItemsQueryOptions = <TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<BadRequestResponse>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceItems>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -315,10 +735,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ListPriceItemsQueryResult = NonNullable<Awaited<ReturnType<typeof listPriceItems>>>
-export type ListPriceItemsQueryError = ErrorType<unknown>
+export type ListPriceItemsQueryError = ErrorType<BadRequestResponse>
 
 
-export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<unknown>>(
+export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<BadRequestResponse>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceItems>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPriceItems>>,
@@ -328,7 +748,7 @@ export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceIte
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<unknown>>(
+export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceItems>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPriceItems>>,
@@ -338,7 +758,7 @@ export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceIte
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<unknown>>(
+export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceItems>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -346,7 +766,7 @@ export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceIte
  * @summary Read the price guide
  */
 
-export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<unknown>>(
+export function useListPriceItems<TData = Awaited<ReturnType<typeof listPriceItems>>, TError = ErrorType<BadRequestResponse>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPriceItems>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -406,7 +826,7 @@ return customFetch<Report>(getCreateReportUrl(),
 
 export const getCreateReportMutationKey = () => ['createReport'] as const;
 
-export const getCreateReportMutationOptions = <TError = ErrorType<ApiError>,
+export const getCreateReportMutationOptions = <TError = ErrorType<ApiError | BadRequestResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReport>>, TError,CreateReportMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createReport>>, TError,CreateReportMutationVariables, TContext> => {
 
@@ -435,13 +855,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateReportMutationResult = NonNullable<Awaited<ReturnType<typeof createReport>>>
     export type CreateReportMutationBody = BodyType<NewReport>
-    export type CreateReportMutationError = ErrorType<ApiError>
+    export type CreateReportMutationError = ErrorType<ApiError | BadRequestResponse>
     export type CreateReportMutationVariables = {data: BodyType<NewReport>}
 
     /**
  * @summary Save a problem report
  */
-export const useCreateReport = <TError = ErrorType<ApiError>,
+export const useCreateReport = <TError = ErrorType<ApiError | BadRequestResponse>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReport>>, TError,CreateReportMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createReport>>,

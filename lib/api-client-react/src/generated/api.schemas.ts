@@ -5,6 +5,83 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface Credentials {
+  /**
+     * @minLength 3
+     * @maxLength 254
+     */
+  email: string;
+  /**
+     * @minLength 1
+     * @maxLength 72
+     */
+  password: string;
+}
+
+export interface Registration {
+  /**
+     * @minLength 3
+     * @maxLength 254
+     */
+  email: string;
+  /**
+     * @minLength 3
+     * @maxLength 254
+     */
+  emailAgain: string;
+  /**
+     * @minLength 10
+     * @maxLength 72
+     */
+  password: string;
+}
+
+export type PassChoicePlan = typeof PassChoicePlan[keyof typeof PassChoicePlan];
+
+
+export const PassChoicePlan = {
+  day: 'day',
+  week: 'week',
+  month: 'month',
+} as const;
+
+export interface PassChoice {
+  plan: PassChoicePlan;
+}
+
+export interface Account {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  /** Server-managed free guide access; never accepted during signup */
+  isAdmin: boolean;
+}
+
+export type AccessPassPlan = typeof AccessPassPlan[keyof typeof AccessPassPlan];
+
+
+export const AccessPassPlan = {
+  day: 'day',
+  week: 'week',
+  month: 'month',
+} as const;
+
+export interface AccessPass {
+  id: string;
+  plan: AccessPassPlan;
+  startsAt: string;
+  expiresAt: string;
+  source: string;
+}
+
+export interface SessionInfo {
+  user: Account | null;
+  pass: AccessPass | null;
+  demoPayments: boolean;
+  /** @nullable */
+  supportWhatsappUrl: string | null;
+}
+
 export type IdeaCity = typeof IdeaCity[keyof typeof IdeaCity];
 
 
@@ -90,4 +167,9 @@ export interface ApiError {
 export interface HealthStatus {
   status: string;
 }
+
+/**
+ * Request refused
+ */
+export type BadRequestResponse = ApiError;
 

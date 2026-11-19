@@ -6,13 +6,22 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accessPass';
+export * from './accessPassPlan';
+export * from './account';
 export * from './apiError';
+export * from './badRequestResponse';
+export * from './credentials';
 export * from './healthStatus';
 export * from './idea';
 export * from './ideaCategory';
 export * from './ideaCity';
 export * from './newReport';
+export * from './passChoice';
+export * from './passChoicePlan';
 export * from './priceItem';
+export * from './registration';
 export * from './report';
+export * from './sessionInfo';
 export * from './tip';
 export * from './tipCategory';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -14,10 +14,11 @@ import { Toast } from '@/components/ui';
 import colors from '@/constants/colors';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { GuideDataProvider } from '@/context/GuideDataContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 // Override with a full API origin when hosting the backend separately.
-const apiOrigin = process.env.EXPO_PUBLIC_API_URL
-  ?? (process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : null);
+const apiOrigin = process.env.EXPO_PUBLIC_API_URL ?? (Platform.OS === 'web' ? null
+  : process.env.EXPO_PUBLIC_DOMAIN ? `https://${process.env.EXPO_PUBLIC_DOMAIN}` : null);
 setBaseUrl(apiOrigin);
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -29,6 +30,7 @@ function RootLayoutNav() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.light.background }}>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.light.background } }}>
+        <Stack.Screen name="signin" />
         <Stack.Screen name="pricing" />
         <Stack.Screen name="(tabs)" />
       </Stack>
@@ -50,6 +52,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
+          <AuthProvider>
           <AppProvider>
             <GuideDataProvider>
             <GestureHandlerRootView style={{ flex: 1 }}>
@@ -60,6 +63,7 @@ export default function RootLayout() {
             </GestureHandlerRootView>
             </GuideDataProvider>
           </AppProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

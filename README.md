@@ -1,6 +1,74 @@
-# Detty December Guide — stage 2
+# Detty December Guide — stage 3
 
-The original mobile screens now read their content from PostgreSQL through a small Express API. No login or real payments have been added. The simulated pass, quiz and saved plan still live on the device.
+The original guide screens read PostgreSQL data through Express. Stage three adds email/password accounts, cookie sessions and server-enforced timed passes. No email service or real payments have been added. Quiz answers and saved ideas remain on-device, scoped to each account; passes now come only from the server.
+
+## Password accounts and passes
+
+### Temporary free admin access
+
+An explicitly designated existing account can have `users.is_admin` enabled by trusted database maintenance. Signed-in admins bypass the pass requirement and pricing screen; Home shows **Admin access · Free**. All other accounts still require a valid pass. New accounts default to non-admin, and signup/sign-in cannot assign the flag. Admin sessions last 30 days before another sign-in is required; this is a session limit, not a paid pass.
+
+To revoke the exemption, set `is_admin=false` on that specific user; the server enforces it on the next data request. On an existing external database apply `database/admin-access.sql` before deploying this change. Do not automatically grant this flag based on a submitted email address, because email ownership is not verified.
+
+- Create an account with email, "type your email again", and a password of at least 10 characters. Emails are trimmed, lowercased and database-unique. Passwords use **bcrypt at cost 12**; plaintext passwords are never stored or logged. To avoid bcrypt truncation, passwords over 72 UTF-8 bytes are rejected.
+- Sign-in uses the same error for an unknown email and a wrong password. Failed/in-flight attempts are limited to **10 per email and 30 per IP per hour**, with increasing delays from 250ms to 4 seconds. Successful attempts release their reservation. Account creation is separately limited to 5/email and 20/IP per hour. Counters are in PostgreSQL, not process memory.
+- Random session tokens live in **Secure, HttpOnly, SameSite=Lax cookies**, never localStorage/AsyncStorage. Only token hashes are stored in the database. Signing out deletes the session; resetting a password invalidates all sessions for that account. Browsers must use HTTPS.
+- A signed-in visitor without a pass has a provisional one-day session for pricing only. A valid pass sets cookie expiry to that pass's expiry. Passes last exactly 24 hours, 7 days or 30 days from their start—not calendar months. Existing live sessions are extended on a manual grant; refresh the app to update the browser cookie.
+- `/api/auth/*` handles authentication separately from guide data. `/api/auth/session` reveals only the current account and pass, demo availability, and the public support link. `/api/passes/demo` requires sign-in and explicit development enablement. Health checks remain public. **All guide routes and any future routes mounted after the access boundary require both a live session and an unexpired, already-started pass.** Direct API requests cannot bypass this.
+- The password module is separate from sessions and access checks so email-link sign-in can be added later. `users.email_verified` defaults to false. No email-link/code delivery, password recovery email, or automatic verification is implemented.
+
+### Manual account commands
+
+First create the account through the app. From the project root:
+
+```sh
+pnpm pass:grant person@example.com day
+pnpm pass:grant person@example.com week
+pnpm pass:grant person@example.com month
+pnpm user:set-password person@example.com
+```
+
+The reset command prompts twice in an interactive terminal with input hidden. **Never put a password in a command argument, environment variable, chat message or CSV.** The CLI rejects extra arguments and noninteractive input. Pass grants are ordinary privileged server-side maintenance commands; do not expose them as public endpoints.
+
+### Settings
+
+| Setting | Purpose |
+|---|---|
+| `DATABASE_URL` | Secret PostgreSQL connection, backend only. |
+| `DEMO_PAYMENTS` | **Unset/off by default.** Only exact `true` **and** `NODE_ENV=development` enable Pay-button grants. `NODE_ENV=production` always refuses, even if this setting is `true`. |
+| `SUPPORT_WHATSAPP_NUMBER` | The sole setting for the public support number, international digits without spaces. The server builds the WhatsApp link with the requested password-help message. |
+| `APP_ORIGIN` | Public HTTPS browser origin on another host; used for allowed-origin validation. |
+| `CORS_ORIGINS` | Optional comma-separated additional trusted origins; never use `*` with cookies. |
+| `EXPO_PUBLIC_API_URL` | Optional API origin for native clients or a separately hosted browser app. Not a secret. |
+
+To try demo Pay locally, explicitly set `DEMO_PAYMENTS=true` in the API's **development** environment and restart API Server. Remove it afterward and restart. It has not been enabled for normal use. Do not change `NODE_ENV` in production to bypass this protection.
+
+For the browser, serve `/api` from the same HTTPS origin as the app (the preview already routes this way). This avoids third-party-cookie restrictions. For another host, configure a reverse proxy to Express; native clients use `EXPO_PUBLIC_API_URL`. Session cookies are not exposed to application JavaScript on any platform. The API trusts one nearest reverse proxy for client IPs: configure that ingress to replace/append trustworthy forwarding headers, or adjust the proxy topology before deployment.
+
+The support note opens WhatsApp only; it does not reset passwords. Verify a caller's identity independently before running the maintenance reset command.
+
+### Test stage three
+
+1. **New account:** try mismatched emails and a short password, then register successfully. You should reach pricing with no pass. Reusing the same email with different capitalization cannot create a second account.
+2. **Wrong password:** try both a wrong password and an unregistered email. Both show "Email or password is incorrect." Repeated failures slow down and eventually return 429 with `Retry-After`.
+3. **Signed out:** open a guide URL in a fresh browser. It redirects to sign-in; direct GETs to `/api/guide/ideas`, `/tips`, `/prices`, and POST `/reports` return 401.
+4. **Signed in, no pass:** pricing appears; all data routes return 403. With demo payments off, pressing Pay grants nothing and shows an explicit error.
+5. **Valid pass:** run `pnpm pass:grant <email> day`, then refresh. Home appears with "Pass ends [date and time]"; content and reporting work. Reload to confirm cookie persistence. Sign out on Home and confirm access is refused again.
+6. **Expired pass:** on a disposable development test account, make **all** its passes expire using the SQL below, then refresh. The API refuses all guide routes even if the browser still has an old screen or cookie. At natural cookie expiry, sign-in is required again.
+
+```sql
+-- Development test account only. Replace the placeholder email.
+UPDATE passes SET starts_at = now() - interval '2 days', expires_at = now() - interval '1 day'
+WHERE user_id = (SELECT id FROM users WHERE email = 'your-test-account@example.com');
+```
+
+7. **Reset:** run the hidden-prompt reset command; old sessions stop working, the old password fails and the new password succeeds. No "forgot password" endpoint or email is involved.
+
+Automated backend checks (API Server must be running, demo payments off):
+```sh
+pnpm --filter @workspace/api-server test:auth
+```
+These create and clean up a unique disposable account and its passes/sessions. They verify secure cookie flags, lowercase uniqueness, wrong-credential parity, direct-route access, expired passes, session rotation/sign-out, per-email/IP limits, demo production refusal, and unchanged guide-data counts.
 
 ## Tools and portability
 
@@ -15,8 +83,8 @@ The development database here is hosted by Replit, but application code uses onl
 ## Run here
 
 1. Start **API Server** and **Detty December Guide**.
-2. Open Preview. Select a pass and press the existing simulated payment button.
-3. The app reads 24 original sample ideas, 8 tips and 5 price items from the database.
+2. Open Preview and create an account or sign in.
+3. Grant a testing pass using the manual command above, then refresh. The app reads the original sample ideas, tips and price items from the database. Pay does not unlock anything by default.
 
 For a fresh development database, run these commands once:
 
@@ -40,6 +108,7 @@ Use Node.js 24, pnpm 10.26.1, and any supported PostgreSQL server.
 
    ```sh
    psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/schema.sql
+   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/stage3.sql
    pnpm db:seed
    ```
 
@@ -53,10 +122,12 @@ Use Node.js 24, pnpm 10.26.1, and any supported PostgreSQL server.
 5. In a second terminal, point the app at that backend:
 
    ```sh
-   EXPO_PUBLIC_API_URL=http://localhost:5000 pnpm --filter @workspace/detty-december run dev:local
+   pnpm --filter @workspace/detty-december run dev:local
    ```
 
-For Expo Go on a phone, replace `localhost` with your computer's reachable LAN address. For a hosted backend use its HTTPS origin. `EXPO_PUBLIC_API_URL` is the **origin**, without `/api`; it is public configuration, not a secret, and must be set before bundling the app.
+For the browser, configure an HTTPS reverse proxy that serves the Expo app and `/api` on the same origin. For Expo Go on a phone, set `EXPO_PUBLIC_API_URL` to your backend's reachable HTTPS origin. `EXPO_PUBLIC_API_URL` is the **origin**, without `/api`; it is public configuration, not a secret, and must be set before bundling the app. Do not weaken Secure cookies for plain HTTP development.
+
+On an existing external stage-two database, apply only `database/stage3.sql`; it adds authentication tables without replacing guide content.
 
 On Replit, the managed app command supplies the API domain automatically. Replit Publish manages its own production schema; do not run the external setup SQL as a production startup hook. Seed data is a separate explicit content command and is not automatically copied by schema publishing.
 
@@ -103,7 +174,7 @@ POST /api/guide/reports
 
 The report body is `{ "ideaId": "...", "note": "..." }`. Notes are 1–2000 characters; unknown ideas return 404. The existing one-tap button sends a short standard note, waits for the database write, then displays the **same original thank-you message**. No new form is added. Failure displays an error instead of pretending a report was saved.
 
-All data routes share one router boundary for adding a pass check later. **There is no server-side access restriction yet.** The existing pricing screen remains a frontend demo, not security. No report-reading/admin endpoint has been added.
+All data routes share the server-side session-and-pass check. Missing/expired sessions return 401; signed-in users without a valid pass receive 403. POST requests also require the `X-Guide-Client: app` header and an accepted browser origin to prevent cross-site form submissions. The shared API client sends this header and cookies automatically. No report-reading/admin endpoint has been added.
 
 ## Checks
 
@@ -111,6 +182,7 @@ All data routes share one router boundary for adding a pass check later. **There
 pnpm run typecheck
 pnpm --filter @workspace/scripts test
 pnpm --filter @workspace/scripts test:db
+pnpm --filter @workspace/scripts test:accounts
 ```
 
 The CSV unit tests do not need a database. The database test needs the schema and seeded development data; it checks stable IDs, in-place updates, archival, foreign-key protection, report preservation and a failure on the second row entirely inside an outer transaction that is rolled back.
@@ -119,7 +191,7 @@ The CSV unit tests do not need a database. The database test needs the schema an
 
 An ideas spreadsheet is **not** a full database backup: it excludes reports, tips, prices and database constraints. GitHub stores code, not database rows.
 
-For a production database on Replit, open **Database → Production → My Data** to download individual tables as CSV, JSON or XLSX. Export `ideas`, `tips`, `price_items` and `reports` when you need all the data. Exported ideas include archived historical rows. A one-time data export is useful for portability, but is separate from a tested full-database restore point.
+For a production database on Replit, open **Database → Production → My Data** to download individual tables as CSV, JSON or XLSX. Content tables are `ideas`, `tips`, `price_items` and `reports`; stage three also adds `users`, `passes`, `sessions` and `auth_limits`. User exports contain private emails and password hashes: protect them as sensitive data, never commit them to Git or share them publicly. Exported ideas include archived historical rows. A one-time data export is useful for portability, but is separate from a tested full-database restore point.
 
 For full production recovery, use **Database → Production → Settings → Advanced**:
 
@@ -134,4 +206,4 @@ Official instructions: [data exports](https://docs.replit.com/features/data-and-
 
 ## Not included
 
-Login, payments, backend pass enforcement, real ticket checkout, real venues/prices, real local replies, WhatsApp/calls, admin tools and cross-device saved plans remain out of scope. No hosting move or publication is performed by this stage.
+Real payments, email delivery/verification, email-link sign-in, automated password recovery, real ticket checkout, real venues/prices, real local replies, an in-app support chat, admin UI and cross-device saved plans remain out of scope. WhatsApp is only an external password-help link. No hosting move or publication is performed by this stage.

@@ -11,11 +11,80 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /auth/session:
+    get:
+      operationId: getSession
+      summary: Read the current sign-in and pass
+      responses:
+        "200":
+          description: Current session or signed-out state
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionInfo" }
+  /auth/signup:
+    post:
+      operationId: signUp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Registration" }
+      responses:
+        "201":
+          description: Account created and signed in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionInfo" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/BadRequest" }
+        "429": { $ref: "#/components/responses/BadRequest" }
+  /auth/signin:
+    post:
+      operationId: signIn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Credentials" }
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionInfo" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/BadRequest" }
+        "429": { $ref: "#/components/responses/BadRequest" }
+  /auth/signout:
+    post:
+      operationId: signOut
+      responses:
+        "204": { description: Signed out }
+  /passes/demo:
+    post:
+      operationId: grantDemoPass
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PassChoice" }
+      responses:
+        "200":
+          description: Development pass granted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionInfo" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/BadRequest" }
   /guide/ideas:
     get:
+      security: [{ sessionCookie: [] }]
       operationId: listIdeas
       summary: Read guide ideas
       responses:
+        "401": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/BadRequest" }
         "200":
           description: Ideas from the database
           content:
@@ -26,9 +95,12 @@ paths:
                   $ref: "#/components/schemas/Idea"
   /guide/tips:
     get:
+      security: [{ sessionCookie: [] }]
       operationId: listTips
       summary: Read survival tips
       responses:
+        "401": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/BadRequest" }
         "200":
           description: Tips from the database
           content:
@@ -39,9 +111,12 @@ paths:
                   $ref: "#/components/schemas/Tip"
   /guide/prices:
     get:
+      security: [{ sessionCookie: [] }]
       operationId: listPriceItems
       summary: Read the price guide
       responses:
+        "401": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/BadRequest" }
         "200":
           description: Price items from the database
           content:
@@ -52,6 +127,7 @@ paths:
                   $ref: "#/components/schemas/PriceItem"
   /guide/reports:
     post:
+      security: [{ sessionCookie: [] }]
       operationId: createReport
       summary: Save a problem report
       requestBody:
@@ -61,6 +137,8 @@ paths:
             schema:
               $ref: "#/components/schemas/NewReport"
       responses:
+        "401": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/BadRequest" }
         "201":
           description: Saved report
           content:
@@ -93,7 +171,70 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 components:
+  responses:
+    BadRequest:
+      description: Request refused
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: detty_session
   schemas:
+    Credentials:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, minLength: 3, maxLength: 254 }
+        password: { type: string, minLength: 1, maxLength: 72 }
+    Registration:
+      type: object
+      additionalProperties: false
+      required: [email, emailAgain, password]
+      properties:
+        email: { type: string, minLength: 3, maxLength: 254 }
+        emailAgain: { type: string, minLength: 3, maxLength: 254 }
+        password: { type: string, minLength: 10, maxLength: 72 }
+    PassChoice:
+      type: object
+      additionalProperties: false
+      required: [plan]
+      properties:
+        plan: { type: string, enum: [day, week, month] }
+    Account:
+      type: object
+      required: [id, email, emailVerified, isAdmin]
+      properties:
+        id: { type: string }
+        email: { type: string }
+        emailVerified: { type: boolean }
+        isAdmin: { type: boolean, description: Server-managed free guide access; never accepted during signup }
+    AccessPass:
+      type: object
+      required: [id, plan, startsAt, expiresAt, source]
+      properties:
+        id: { type: string }
+        plan: { type: string, enum: [day, week, month] }
+        startsAt: { type: string }
+        expiresAt: { type: string }
+        source: { type: string }
+    SessionInfo:
+      type: object
+      required: [user, pass, demoPayments, supportWhatsappUrl]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/Account"
+            - { type: "null" }
+        pass:
+          oneOf:
+            - $ref: "#/components/schemas/AccessPass"
+            - { type: "null" }
+        demoPayments: { type: boolean }
+        supportWhatsappUrl: { type: ["string", "null"] }
     Idea:
       type: object
       required: [id, city, category, title, area, priceLevel, blurb, verified, status, source]

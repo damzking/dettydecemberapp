@@ -6,8 +6,7 @@ import { CreateReportBody, CreateReportResponse, ListIdeasResponse, ListTipsResp
 
 export const guideRouter: IRouter = Router();
 
-// All data routes live here. A future pass middleware belongs at this boundary.
-// No pass check, login or payment enforcement is implemented in stage two.
+// The parent router enforces a current session and pass before reaching this file.
 guideRouter.get("/ideas", async (_req, res) => {
   const rows = await db.select().from(ideasTable)
     .where(ne(ideasTable.status, "Archived")).orderBy(asc(ideasTable.id));

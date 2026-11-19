@@ -9,6 +9,121 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Read the current sign-in and pass
+ */
+export const GetSessionResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "isAdmin": zod.boolean().describe('Server-managed free guide access; never accepted during signup')
+}),zod.null()]),
+  "pass": zod.union([zod.object({
+  "id": zod.string(),
+  "plan": zod.enum(['day', 'week', 'month']),
+  "startsAt": zod.string(),
+  "expiresAt": zod.string(),
+  "source": zod.string()
+}),zod.null()]),
+  "demoPayments": zod.boolean(),
+  "supportWhatsappUrl": zod.string().nullable()
+})
+
+
+export const signUpBodyEmailMin = 3;
+export const signUpBodyEmailMax = 254;
+
+export const signUpBodyEmailAgainMin = 3;
+export const signUpBodyEmailAgainMax = 254;
+
+export const signUpBodyPasswordMin = 10;
+export const signUpBodyPasswordMax = 72;
+
+
+
+export const SignUpBody = zod.object({
+  "email": zod.string().min(signUpBodyEmailMin).max(signUpBodyEmailMax),
+  "emailAgain": zod.string().min(signUpBodyEmailAgainMin).max(signUpBodyEmailAgainMax),
+  "password": zod.string().min(signUpBodyPasswordMin).max(signUpBodyPasswordMax)
+})
+
+export const SignUpResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "isAdmin": zod.boolean().describe('Server-managed free guide access; never accepted during signup')
+}),zod.null()]),
+  "pass": zod.union([zod.object({
+  "id": zod.string(),
+  "plan": zod.enum(['day', 'week', 'month']),
+  "startsAt": zod.string(),
+  "expiresAt": zod.string(),
+  "source": zod.string()
+}),zod.null()]),
+  "demoPayments": zod.boolean(),
+  "supportWhatsappUrl": zod.string().nullable()
+})
+
+
+export const signInBodyEmailMin = 3;
+export const signInBodyEmailMax = 254;
+
+export const signInBodyPasswordMax = 72;
+
+
+
+export const SignInBody = zod.object({
+  "email": zod.string().min(signInBodyEmailMin).max(signInBodyEmailMax),
+  "password": zod.string().min(1).max(signInBodyPasswordMax)
+})
+
+export const SignInResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "isAdmin": zod.boolean().describe('Server-managed free guide access; never accepted during signup')
+}),zod.null()]),
+  "pass": zod.union([zod.object({
+  "id": zod.string(),
+  "plan": zod.enum(['day', 'week', 'month']),
+  "startsAt": zod.string(),
+  "expiresAt": zod.string(),
+  "source": zod.string()
+}),zod.null()]),
+  "demoPayments": zod.boolean(),
+  "supportWhatsappUrl": zod.string().nullable()
+})
+
+
+export const SignOutResponse = zod.void()
+
+
+export const GrantDemoPassBody = zod.object({
+  "plan": zod.enum(['day', 'week', 'month'])
+})
+
+export const GrantDemoPassResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "isAdmin": zod.boolean().describe('Server-managed free guide access; never accepted during signup')
+}),zod.null()]),
+  "pass": zod.union([zod.object({
+  "id": zod.string(),
+  "plan": zod.enum(['day', 'week', 'month']),
+  "startsAt": zod.string(),
+  "expiresAt": zod.string(),
+  "source": zod.string()
+}),zod.null()]),
+  "demoPayments": zod.boolean(),
+  "supportWhatsappUrl": zod.string().nullable()
+})
+
+
+/**
  * @summary Read guide ideas
  */
 export const ListIdeasResponseItem = zod.object({

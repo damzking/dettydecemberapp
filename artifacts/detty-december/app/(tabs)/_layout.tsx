@@ -8,6 +8,7 @@ import { Redirect, Tabs } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView, SFSymbol } from 'expo-symbols';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 
 // One list drives both tab styles.
 const TABS: { name: string; title: string; sf: SFSymbol; sfOn: SFSymbol; icon: keyof typeof Feather.glyphMap }[] = [
@@ -71,8 +72,10 @@ function ClassicTabLayout() {
 
 export default function TabLayout() {
   const { ready, hasPass } = useApp();
+  const { user } = useAuth();
   // Gate: no tabs (and no tab routes) until a pass is chosen.
   if (!ready) return null;
+  if (!user) return <Redirect href="/signin" />;
   if (!hasPass) return <Redirect href="/pricing" />;
   if (isLiquidGlassAvailable()) return <NativeTabLayout />;
   return <ClassicTabLayout />;

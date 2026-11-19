@@ -336,6 +336,7 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  headers.set("X-Guide-Client", "app");
 
   if (
     typeof init.body === "string" &&
@@ -360,7 +361,7 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, { ...init, credentials: "include", method, headers });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

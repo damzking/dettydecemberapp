@@ -2,11 +2,16 @@
 
 A guide for diaspora visitors to Lagos and Abuja in December.
 
-## Current scope: stage 2 only
+## Current scope: stage 3 only
 
-- Preserve the stage-one screen layouts, copy, colors, filters, quiz and device-only pass/plan behavior.
+- User-requested exception: the explicitly designated admin receives free guide access after sign-in, without a pass. Ordinary accounts remain paywalled. Assign only to an existing account via trusted database maintenance, never automatically from signup email.
+
+- Preserve the existing guide layouts, filters, quiz and saved-plan behavior. Only add the requested authentication flow, Home sign-out and pass expiry text.
 - Store ideas, tips, prices and problem reports in PostgreSQL, served by Express.
-- No login, real payments, backend pass enforcement, admin UI, or live local support.
+- Use email/password authentication, not email links: bcrypt hashes, unique lowercase email, repeated email on signup, minimum 10 characters, email_verified false by default.
+- Enforce live cookie sessions and unexpired passes on every data route. Secure HttpOnly cookies last until the pass expires; no-pass sessions only allow pricing.
+- No real payments, email service, email-link method, forgot-password endpoint, admin UI, or live local support. Demo grants need exact DEMO_PAYMENTS=true AND NODE_ENV=development; off by default.
+- Keep the support number in SUPPORT_WHATSAPP_NUMBER only. Build the external WhatsApp password-help URL from that setting.
 - Keep code simple and beginner-friendly, with short comments.
 - Use standard, widely supported tools. Avoid Replit-only application services so the app can move hosts.
 - Sample venue names, prices, dates and blurbs remain bracketed. The specified pass prices are $3, $6 and $10.
@@ -14,7 +19,7 @@ A guide for diaspora visitors to Lagos and Abuja in December.
 
 ## Run
 
-Start **API Server** and **Detty December Guide**, then open Preview. The existing simulated purchase unlocks the app without charging money.
+Start **API Server** and **Detty December Guide**, then open Preview. Create an account and grant a test pass with `pnpm pass:grant <email> <day|week|month>`. Reset a password with `pnpm user:set-password <email>` (hidden terminal prompts; no password arguments).
 
 For a fresh development database:
 
@@ -31,10 +36,11 @@ See `README.md` for CSV replacement and instructions for other hosts.
 ## Implementation
 
 - PostgreSQL through standard `pg` and Drizzle; database access uses `DATABASE_URL`.
-- Express data routes live under `/api/guide`. Future pass middleware can be added at that router boundary; none exists now.
+- Express data routes live under `/api/guide`, after the session-and-pass middleware boundary. Auth lives separately in its own module.
 - OpenAPI lives in `lib/api-spec/openapi.yaml`; run `pnpm --filter @workspace/api-spec run codegen` after contract edits.
 - Seed-only sample content is in `lib/db/src/seed-data.ts`, not bundled frontend lists.
-- The app reads through generated API hooks; its local pass, quiz and saved IDs stay in AsyncStorage.
+- The app reads through generated API hooks with cookies. Only per-account quiz/saved IDs stay in AsyncStorage; never trust legacy device-only passes.
+- Failed sign-in limits persist in PostgreSQL by hashed email/IP, with increasing delays. Never log password bodies or SQL parameter details.
 - CSV imports match city/category/name and update existing ideas in place, preserving their IDs. Removed ideas are archived, not deleted.
 - Reports have a restrictive foreign key to ideas; importing cannot leave dangling report references.
 - Checked dates are text so `[DATE]` sample values render unchanged.
