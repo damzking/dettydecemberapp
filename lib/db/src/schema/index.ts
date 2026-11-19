@@ -6,3 +6,4 @@ export * from "./users";
 export * from "./passes";
 export * from "./sessions";
 export * from "./auth-limits";
+export * from "./payments";

@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "pass:revoke": "tsx ./src/pass-revoke.ts",
+    "payments:list": "tsx ./src/payments-list.ts",
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
     "pass:grant": "tsx ./src/pass-grant.ts",

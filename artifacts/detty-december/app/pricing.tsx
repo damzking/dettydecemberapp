@@ -1,6 +1,7 @@
 // Pricing paywall: the only screen until a pass is chosen.
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, Text, View } from 'react-native';
+import { useStartCheckout } from '@workspace/api-client-react';
 import { Feather } from '@expo/vector-icons';
 import { Redirect, router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
@@ -17,6 +18,7 @@ export default function Pricing() {
   const [choice, setChoice] = useState<Pass['id']>('week');
   const { user } = useAuth();
   const [paying, setPaying] = useState(false);
+  const checkout = useStartCheckout();
   if (!ready) return null;
   if (!user) return <Redirect href="/signin" />;
   if (hasPass) return <Redirect href="/" />;
@@ -26,9 +28,9 @@ export default function Pricing() {
     if (paying) return;
     setPaying(true);
     try {
-      await buyPass(choice);
-      showToast(`Demo payment accepted. ${pass.name} unlocked.`);
-      router.replace('/');
+      const result = await checkout.mutateAsync({ data: { plan: choice } });
+      if (Platform.OS === 'web') window.location.assign(result.checkoutUrl);
+      else await Linking.openURL(result.checkoutUrl);
     } catch (error) {
       const message = error && typeof error === 'object' && 'data' in error
         ? (error.data as { error?: string })?.error : undefined;
@@ -70,7 +72,7 @@ export default function Pricing() {
       </Card>
       <Btn testID="pay" label={paying ? 'Please wait…' : `Pay $${pass.price} and unlock`} onPress={() => { void pay(); }} />
       <Body muted style={{ fontSize: 12, textAlign: 'center' }}>One-time payment for the days you choose. No auto-renewal. [Refund policy goes here]</Body>
-      <Body muted style={{ fontSize: 11, textAlign: 'center' }}>Demo only: no real payment is taken.</Body>
+      <Body muted style={{ fontSize: 11, textAlign: 'center' }}>Test payments only. Checkout is disabled unless configured for development.</Body>
     </Screen>
   );
 }

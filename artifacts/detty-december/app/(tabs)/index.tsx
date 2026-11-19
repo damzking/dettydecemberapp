@@ -62,7 +62,7 @@ export default function Home() {
       <Pressable testID="pass-status" onPress={() => showToast(user?.isAdmin ? 'Admin access is free. No pass required.' : `${passInfo?.name ?? 'Pass'} active. About ${hoursLeft} hours left.`)}
         style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: c.border }}>
         <Feather name="clock" size={18} color={c.primary} />
-        <Text style={{ color: c.foreground, fontFamily: F.s, flex: 1 }}>{user?.isAdmin ? 'Admin access · Free' : `Pass ends ${pass ? new Date(pass.expiresAt).toLocaleString() : ''}`}</Text>
+        <Text style={{ color: c.foreground, fontFamily: F.s, flex: 1 }}>{user?.isAdmin ? 'Admin access · Free' : `Pass ends ${pass ? new Date(pass.expiresAt).toLocaleString(undefined, { timeZoneName: 'short' }) : ''}`}</Text>
       </Pressable>
       <Pressable testID="scam-watch" onPress={() => { setTipCategory('Scams'); router.navigate('/survive'); }}
         style={({ pressed }) => ({ padding: 18, borderRadius: 18, backgroundColor: c.accent, borderLeftWidth: 4, borderLeftColor: c.destructive, gap: 6, transform: [{ scale: pressed ? 0.98 : 1 }] })}>

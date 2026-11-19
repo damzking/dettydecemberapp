@@ -26,3 +26,5 @@ channel = "stable-25_05"
 
 [userenv.shared]
 SUPPORT_WHATSAPP_NUMBER = "2348144846045"
+DEMO_PAYMENTS = "false"
+PAYMENT_PROVIDER = "disabled"

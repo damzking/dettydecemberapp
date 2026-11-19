@@ -4,6 +4,7 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 import cookieParser from "cookie-parser";
 import { originAllowed, protectWrites } from "./auth/security";
+import { paymentWebhook } from "./payments/router";
 
 const app: Express = express();
 
@@ -42,6 +43,7 @@ app.use((req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
+app.use("/api/payments/webhooks", paymentWebhook);
 app.use(express.json({ limit: "16kb" }));
 app.use(cookieParser());
 app.use("/api", protectWrites);

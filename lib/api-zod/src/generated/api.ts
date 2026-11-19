@@ -8,6 +8,57 @@
 import * as zod from 'zod';
 
 
+export const StartCheckoutBody = zod.object({
+  "plan": zod.enum(['day', 'week', 'month'])
+})
+
+export const StartCheckoutResponse = zod.object({
+  "reference": zod.string(),
+  "checkoutUrl": zod.string()
+})
+
+
+export const ConfirmCheckoutParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const ConfirmCheckoutResponse = zod.object({
+  "reference": zod.string(),
+  "status": zod.string(),
+  "session": zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string(),
+  "emailVerified": zod.boolean(),
+  "isAdmin": zod.boolean().describe('Server-managed free guide access; never accepted during signup')
+}),zod.null()]),
+  "pass": zod.union([zod.object({
+  "id": zod.string(),
+  "plan": zod.enum(['day', 'week', 'month']),
+  "startsAt": zod.string(),
+  "expiresAt": zod.string(),
+  "source": zod.string()
+}),zod.null()]),
+  "demoPayments": zod.boolean(),
+  "supportWhatsappUrl": zod.string().nullable()
+})
+})
+
+
+export const SimulateCheckoutParams = zod.object({
+  "reference": zod.coerce.string()
+})
+
+export const SimulateCheckoutBody = zod.object({
+  "status": zod.enum(['success', 'failed', 'abandoned'])
+})
+
+export const SimulateCheckoutResponse = zod.object({
+  "reference": zod.string(),
+  "status": zod.string()
+})
+
+
 /**
  * @summary Read the current sign-in and pass
  */

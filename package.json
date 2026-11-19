@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "pass:revoke": "pnpm --filter @workspace/scripts run pass:revoke",
+    "payments:list": "pnpm --filter @workspace/scripts run payments:list",
     "db:seed": "pnpm --filter @workspace/scripts run seed",
     "pass:grant": "pnpm --filter @workspace/scripts run pass:grant",
     "user:set-password": "pnpm --filter @workspace/scripts run user:set-password",

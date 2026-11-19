@@ -27,11 +27,15 @@ import type {
 import type {
   ApiError,
   BadRequestResponse,
+  Checkout,
   Credentials,
   HealthStatus,
   Idea,
+  MockOutcome,
   NewReport,
   PassChoice,
+  PaymentConfirmation,
+  PaymentResult,
   PriceItem,
   Registration,
   Report,
@@ -65,6 +69,239 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getStartCheckoutUrl = () => {
+
+
+
+
+  return `/api/payments/start`
+}
+
+export const startCheckout = async (passChoice: PassChoice, options?: Parameters<typeof customFetch>[1]): Promise<Checkout> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Checkout>(getStartCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(passChoice)
+  }
+);}
+
+
+
+
+
+export const getStartCheckoutMutationKey = () => ['startCheckout'] as const;
+
+export const getStartCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCheckout>>, TError,StartCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startCheckout>>, TError,StartCheckoutMutationVariables, TContext> => {
+
+const mutationKey = getStartCheckoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startCheckout>>, StartCheckoutMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  startCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof startCheckout>>>
+    export type StartCheckoutMutationBody = BodyType<PassChoice>
+    export type StartCheckoutMutationError = ErrorType<unknown>
+    export type StartCheckoutMutationVariables = {data: BodyType<PassChoice>}
+
+    export const useStartCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startCheckout>>, TError,StartCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startCheckout>>,
+        TError,
+        StartCheckoutMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartCheckoutMutationOptions(options), queryClient);
+    }
+
+export const getConfirmCheckoutUrl = (reference: string,) => {
+
+
+
+
+  return `/api/payments/${reference}/confirm`
+}
+
+export const confirmCheckout = async (reference: string, options?: Parameters<typeof customFetch>[1]): Promise<PaymentConfirmation> => {
+
+  return customFetch<PaymentConfirmation>(getConfirmCheckoutUrl(reference),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getConfirmCheckoutMutationKey = () => ['confirmCheckout'] as const;
+
+export const getConfirmCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCheckout>>, TError,ConfirmCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmCheckout>>, TError,ConfirmCheckoutMutationVariables, TContext> => {
+
+const mutationKey = getConfirmCheckoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmCheckout>>, ConfirmCheckoutMutationVariables> = (props) => {
+          const {reference} = props ?? {};
+
+          return  confirmCheckout(reference,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof confirmCheckout>>>
+
+    export type ConfirmCheckoutMutationError = ErrorType<unknown>
+    export type ConfirmCheckoutMutationVariables = {reference: string}
+
+    export const useConfirmCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmCheckout>>, TError,ConfirmCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof confirmCheckout>>,
+        TError,
+        ConfirmCheckoutMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConfirmCheckoutMutationOptions(options), queryClient);
+    }
+
+export const getSimulateCheckoutUrl = (reference: string,) => {
+
+
+
+
+  return `/api/payments/${reference}/mock`
+}
+
+export const simulateCheckout = async (reference: string,
+    mockOutcome: MockOutcome, options?: Parameters<typeof customFetch>[1]): Promise<PaymentResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PaymentResult>(getSimulateCheckoutUrl(reference),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mockOutcome)
+  }
+);}
+
+
+
+
+
+export const getSimulateCheckoutMutationKey = () => ['simulateCheckout'] as const;
+
+export const getSimulateCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateCheckout>>, TError,SimulateCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof simulateCheckout>>, TError,SimulateCheckoutMutationVariables, TContext> => {
+
+const mutationKey = getSimulateCheckoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof simulateCheckout>>, SimulateCheckoutMutationVariables> = (props) => {
+          const {reference,data} = props ?? {};
+
+          return  simulateCheckout(reference,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SimulateCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof simulateCheckout>>>
+    export type SimulateCheckoutMutationBody = BodyType<MockOutcome>
+    export type SimulateCheckoutMutationError = ErrorType<unknown>
+    export type SimulateCheckoutMutationVariables = {reference: string;data: BodyType<MockOutcome>}
+
+    export const useSimulateCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateCheckout>>, TError,SimulateCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof simulateCheckout>>,
+        TError,
+        SimulateCheckoutMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSimulateCheckoutMutationOptions(options), queryClient);
+    }
 
 export const getGetSessionUrl = () => {
 

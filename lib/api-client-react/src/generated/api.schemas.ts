@@ -5,6 +5,68 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface Checkout {
+  reference: string;
+  checkoutUrl: string;
+}
+
+export type MockOutcomeStatus = typeof MockOutcomeStatus[keyof typeof MockOutcomeStatus];
+
+
+export const MockOutcomeStatus = {
+  success: 'success',
+  failed: 'failed',
+  abandoned: 'abandoned',
+} as const;
+
+export interface MockOutcome {
+  status: MockOutcomeStatus;
+}
+
+export interface PaymentResult {
+  reference: string;
+  status: string;
+}
+
+export interface Account {
+  id: string;
+  email: string;
+  emailVerified: boolean;
+  /** Server-managed free guide access; never accepted during signup */
+  isAdmin: boolean;
+}
+
+export type AccessPassPlan = typeof AccessPassPlan[keyof typeof AccessPassPlan];
+
+
+export const AccessPassPlan = {
+  day: 'day',
+  week: 'week',
+  month: 'month',
+} as const;
+
+export interface AccessPass {
+  id: string;
+  plan: AccessPassPlan;
+  startsAt: string;
+  expiresAt: string;
+  source: string;
+}
+
+export interface SessionInfo {
+  user: Account | null;
+  pass: AccessPass | null;
+  demoPayments: boolean;
+  /** @nullable */
+  supportWhatsappUrl: string | null;
+}
+
+export interface PaymentConfirmation {
+  reference: string;
+  status: string;
+  session: SessionInfo;
+}
+
 export interface Credentials {
   /**
      * @minLength 3
@@ -47,39 +109,6 @@ export const PassChoicePlan = {
 
 export interface PassChoice {
   plan: PassChoicePlan;
-}
-
-export interface Account {
-  id: string;
-  email: string;
-  emailVerified: boolean;
-  /** Server-managed free guide access; never accepted during signup */
-  isAdmin: boolean;
-}
-
-export type AccessPassPlan = typeof AccessPassPlan[keyof typeof AccessPassPlan];
-
-
-export const AccessPassPlan = {
-  day: 'day',
-  week: 'week',
-  month: 'month',
-} as const;
-
-export interface AccessPass {
-  id: string;
-  plan: AccessPassPlan;
-  startsAt: string;
-  expiresAt: string;
-  source: string;
-}
-
-export interface SessionInfo {
-  user: Account | null;
-  pass: AccessPass | null;
-  demoPayments: boolean;
-  /** @nullable */
-  supportWhatsappUrl: string | null;
 }
 
 export type IdeaCity = typeof IdeaCity[keyof typeof IdeaCity];

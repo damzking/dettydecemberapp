@@ -11,6 +11,47 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /payments/start:
+    post:
+      operationId: startCheckout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PassChoice" }
+      responses:
+        "200":
+          description: Checkout created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Checkout" }
+  /payments/{reference}/confirm:
+    post:
+      operationId: confirmCheckout
+      parameters:
+        - { name: reference, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Confirmation result
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentConfirmation" }
+  /payments/{reference}/mock:
+    post:
+      operationId: simulateCheckout
+      parameters:
+        - { name: reference, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MockOutcome" }
+      responses:
+        "200":
+          description: Mock outcome stored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaymentResult" }
   /auth/session:
     get:
       operationId: getSession
@@ -183,6 +224,30 @@ components:
       in: cookie
       name: detty_session
   schemas:
+    Checkout:
+      type: object
+      required: [reference, checkoutUrl]
+      properties:
+        reference: { type: string }
+        checkoutUrl: { type: string }
+    MockOutcome:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [success, failed, abandoned] }
+    PaymentResult:
+      type: object
+      required: [reference, status]
+      properties:
+        reference: { type: string }
+        status: { type: string }
+    PaymentConfirmation:
+      type: object
+      required: [reference, status, session]
+      properties:
+        reference: { type: string }
+        status: { type: string }
+        session: { $ref: "#/components/schemas/SessionInfo" }
     Credentials:
       type: object
       additionalProperties: false
